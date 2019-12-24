@@ -1,3 +1,5 @@
+#+TITLE: config
+
 * General
 ** Enable line wrapping
 #+BEGIN_SRC emacs-lisp
@@ -31,7 +33,10 @@
 
 #+RESULTS:
 : move-text-up
-
+** eShell
+#+BEGIN_SRC emacs-lisp
+(map! :leader "o e" #'projectile-run-eshell)
+#+END_SRC
 
 * Major modes
 ** Elixir
@@ -39,7 +44,14 @@ Better formating for test output buffers
 #+BEGIN_SRC emacs-lisp
 (setq alchemist-test-truncate-lines nil)
 (set-popup-rule! "^\\*alchemist test report" :size 0.4 :select nil :quit nil :ttl 0 :side 'bottom)
+(setq compilation-scroll-output t)
 #+END_SRC
+
+Use web-mode for eex files
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.?eex?\\'" . web-mode))
+#+END_SRC
+
 ** Web mode
 #+BEGIN_SRC emacs-lisp
 (setq web-mode-markup-indent-offset 2
@@ -57,4 +69,28 @@ Better formating for test output buffers
  doom-big-font (font-spec :family "Source Code Pro" :size 20)
  doom-variable-pitch-font (font-spec :family "Source Code Pro" :size 20)
  doom-theme 'doom-gruvbox)
+#+END_SRC
+
+* Toogle 2 windows layout (SPC l +)
+#+BEGIN_SRC emacs-lisp
+(defun spacemacs/window-layout-toggle ()
+  "Toggle between horizontal and vertical layout of two windows."
+  (interactive)
+  (if (= (count-windows) 2)
+    (let* ((window-tree (car (window-tree)))
+           (current-split-vertical-p (car window-tree))
+           (first-window (nth 2 window-tree))
+           (second-window (nth 3 window-tree))
+           (second-window-state (window-state-get second-window))
+           (splitter (if current-split-vertical-p
+                         #'split-window-horizontally
+                       #'split-window-vertically)))
+      (delete-other-windows first-window)
+      ;; `window-state-put' also re-selects the window if needed, so we don't
+      ;; need to call `select-window'
+      (window-state-put second-window-state (funcall splitter)))
+    (error "Can't toggle window layout when the number of windows isn't two.")))
+
+;; Place your private configuration here
+(map! :n "SPC l +" #'spacemacs/window-layout-toggle)
 #+END_SRC
